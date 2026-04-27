@@ -1,0 +1,22 @@
+{
+  "name": "insighta-cli",
+  "version": "1.0.0",
+  "description": "Insighta Labs CLI tool",
+  "main": "index.js",
+  "bin": {
+    "insighta": "./index.js"
+  },
+  "scripts": {
+    "start": "node index.js"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "axios": "^1.6.0",
+    "chalk": "^4.1.2",
+    "commander": "^11.0.0",
+    "conf": "^10.2.0",
+    "open": "^8.4.2"
+  }
+}
