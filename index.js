@@ -109,8 +109,7 @@ program
       code_challenge_method: 'S256',
     });
 
-    const loginUrl = `${BASE_URL}/auth/github?state=${state}&code_challenge=${codeChallenge}&code_challenge_method=S256`;
-
+const loginUrl = `${BASE_URL}/auth/github?state=${state}&code_challenge=${codeChallenge}&code_challenge_method=S256&redirect_uri=http://localhost:9999/callback`;
     console.log(chalk.blue('Opening GitHub login in your browser...'));
     console.log(chalk.gray(`Login URL: ${loginUrl}`));
 
