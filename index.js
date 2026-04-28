@@ -89,6 +89,7 @@ async function apiRequest(method, url, data = null, params = null) {
 }
 
 // ─── LOGIN ────────────────────────────────────
+// ─── LOGIN ────────────────────────────────────
 program
   .command('login')
   .description('Login with GitHub OAuth (PKCE)')
@@ -100,104 +101,41 @@ program
     config.set('pkce_verifier', codeVerifier);
     config.set('pkce_state', state);
 
-    const params = new URLSearchParams({
-      client_id: '',
-      redirect_uri: 'http://localhost:9999/callback',
-      scope: 'user:email',
-      state,
-      code_challenge: codeChallenge,
-      code_challenge_method: 'S256',
-    });
+    const loginUrl = `http://35.180.66.115:3000/api/v1/auth/github?state=${state}&code_challenge=${codeChallenge}&code_challenge_method=S256`;
 
-const loginUrl = `${BASE_URL}/auth/github?state=${state}&code_challenge=${codeChallenge}&code_challenge_method=S256&redirect_uri=http://localhost:9999/callback`;
-    console.log(chalk.blue('Opening GitHub login in your browser...'));
-    console.log(chalk.gray(`Login URL: ${loginUrl}`));
-
+    console.log(chalk.blue('\n🔐 Opening GitHub login in your browser...'));
     await open(loginUrl);
 
-    console.log(chalk.yellow('Waiting for authentication...'));
+    console.log(chalk.yellow('\nAfter login, you will be redirected to the portal.'));
+    console.log(chalk.yellow('Copy the access_token and refresh_token from the URL and paste below.\n'));
 
-    await new Promise((resolve, reject) => {
-      const server = http.createServer(async (req, res) => {
-        const url = new URL(req.url, 'http://localhost:9999');
-
-        if (url.pathname !== '/callback') {
-          res.end('Waiting...');
-          return;
-        }
-
-        const returnedState = url.searchParams.get('state');
-        const code = url.searchParams.get('code');
-        const accessToken = url.searchParams.get('access_token');
-        const refreshToken = url.searchParams.get('refresh_token');
-
-        // If tokens come directly in URL
-        if (accessToken) {
-          config.set('access_token', accessToken);
-          config.set('refresh_token', refreshToken);
-          res.end('<h2>Login successful! You can close this tab.</h2>');
-          server.close();
-          console.log(chalk.green('✅ Logged in successfully!'));
-          resolve();
-          return;
-        }
-
-        // Validate state
-        const savedState = config.get('pkce_state');
-        if (returnedState !== savedState) {
-          res.end('State mismatch. Please try again.');
-          server.close();
-          reject(new Error('State mismatch'));
-          return;
-        }
-
-        if (!code) {
-          res.end('No code received.');
-          server.close();
-          reject(new Error('No code'));
-          return;
-        }
-
-        try {
-          const tokenRes = await axios.post(`${BASE_URL}/auth/github/token`, {
-            code,
-            code_verifier: config.get('pkce_verifier'),
-            state,
-          });
-
-          config.set('access_token', tokenRes.data.access_token);
-          config.set('refresh_token', tokenRes.data.refresh_token);
-          res.end('<h2>Login successful! You can close this tab.</h2>');
-          server.close();
-          console.log(chalk.green(`✅ Logged in successfully!`));
-          resolve();
-        } catch (err) {
-          res.end('Authentication failed.');
-          server.close();
-          reject(err);
-        }
-      });
-
-      server.listen(9999, () => {
-        console.log(chalk.gray('Local callback server started on port 9999'));
-      });
-
-      server.on('error', reject);
-
-      // Timeout after 2 minutes
-      setTimeout(() => {
-        server.close();
-        reject(new Error('Login timeout'));
-      }, 120000);
+    const readline = require('readline');
+    const rl = readline.createInterface({
+      input: process.stdin,
+      output: process.stdout,
     });
 
-    // Show who logged in
-    try {
-      const me = await apiRequest('get', '/auth/me');
-      console.log(chalk.green(`Logged in as @${me.data.username} (${me.data.role})`));
-    } catch {}
-  });
+    rl.question(chalk.white('Paste your access_token here: '), async (accessToken) => {
+      rl.question(chalk.white('Paste your refresh_token here: '), async (refreshToken) => {
+        rl.close();
 
+        if (!accessToken || !refreshToken) {
+          console.log(chalk.red('No tokens provided. Login failed.'));
+          return;
+        }
+
+        config.set('access_token', accessToken.trim());
+        config.set('refresh_token', refreshToken.trim());
+
+        try {
+          const me = await apiRequest('get', '/auth/me');
+          console.log(chalk.green(`\n✅ Logged in as @${me.data.username} (${me.data.role})`));
+        } catch {
+          console.log(chalk.green('✅ Tokens saved successfully!'));
+        }
+      });
+    });
+  });
 // ─── WHOAMI ───────────────────────────────────
 program
   .command('whoami')
