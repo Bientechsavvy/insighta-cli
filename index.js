@@ -10,7 +10,7 @@ const crypto = require('crypto');
 const path = require('path');
 
 const config = new Conf({ projectName: 'insighta' });
-const BASE_URL = 'http://35.180.66.115:3000/api/v1';
+const BASE_URL = 'http://35.180.73.174:3000/api/v1';
 
 const program = new Command();
 
@@ -87,8 +87,6 @@ async function apiRequest(method, url, data = null, params = null) {
     throw err;
   }
 }
-
-// ─── LOGIN ────────────────────────────────────
 // ─── LOGIN ────────────────────────────────────
 program
   .command('login')
@@ -101,7 +99,7 @@ program
     config.set('pkce_verifier', codeVerifier);
     config.set('pkce_state', state);
 
-    const loginUrl = `http://35.180.66.115:3000/api/v1/auth/github?state=${state}&code_challenge=${codeChallenge}&code_challenge_method=S256`;
+    const loginUrl = `http://35.180.73.174:3000/api/v1/auth/github?state=${state}&code_challenge=${codeChallenge}&code_challenge_method=S256`;
 
     console.log(chalk.blue('\n🔐 Opening GitHub login in your browser...'));
     await open(loginUrl);
