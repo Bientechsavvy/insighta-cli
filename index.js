@@ -89,7 +89,6 @@ async function apiRequest(method, url, data = null, params = null) {
 }
 
 // ─── LOGIN ────────────────────────────────────
-// ─── LOGIN ────────────────────────────────────
 program
   .command('login')
   .description('Login with GitHub OAuth (PKCE)')
